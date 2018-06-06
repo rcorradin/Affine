@@ -1,6 +1,7 @@
-###############
-# SIMU UNA REP
-###############
+#########################
+# SIMU 100 REP
+# It takes a lot of time
+#########################
 
 library(mvtnorm)
 library(doParallel)
@@ -22,7 +23,7 @@ get_upper_tri <- function(mat) {
 set.seed(42)
 num  <- c(100, 300, 1000)
 nrep <- 1
-cost <- c(1/6, 1/3, 1, 3, 6)
+cost <- c(1/5, 1/2, 1, 2, 5)
 grid <- expand.grid(seq(-6.5,6.5,length.out = 40),seq(-6.5,6.5,length.out = 40))
 ngrid <- nrow(grid)
 
@@ -33,7 +34,7 @@ k <- 1
 for(l in 1:nrep){
   for(i in 1:length(num)){
     
-    temp <- rbind(rmvnorm(num[i]/4, c(-2,-2), matrix(c(1, .85, .85, 1), ncol = 2)), rmvnorm(3 * num[i]/4, c(2,2), diag(1,2)))
+    temp <- rbind(rmvnorm(num[i]/2, c(-2,-2), matrix(c(1, .85, .85, 1), ncol = 2)), rmvnorm(num[i]/2, c(2,2), diag(1,2)))
     
     for(j in 1:length(cost)){
       
@@ -54,7 +55,7 @@ dens <- apply(grid, 1, function(x) dmvt(x, df = 2, log = F))
 
 ###################################
 
-no_cores <- 4
+no_cores <- 6
 registerDoParallel(cores=no_cores)  
 cl <- makeCluster(no_cores)
 
@@ -73,7 +74,7 @@ result <- foreach(i = 1:1500, .packages = c("BNPmix", "mcclust.ext")) %dopar% {
                     nu0 = 4,
                     sigma = diag(1,2),
                     b1 = 4,
-                    B1 = diag(10,2),
+                    B1 = diag(15,2),
                     m1 = c(0,0),
                     k1 = 1,
                     nupd = 200, 
@@ -146,8 +147,8 @@ ggheatmap_ten100 <- ggplot(melted_ten100, aes(X2, X1, fill = value)) +
     barheight = 7,
     title.hjust = 0.5
   )) +
-  scale_x_discrete(limit = c("1/6", "1/3", "1", "3", "6"))+ 
-  scale_y_discrete(limit = c("1/6", "1/3", "1", "3", "6"))
+  scale_x_discrete(limit = c("1/5", "1/2", "1", "2", "5"))+ 
+  scale_y_discrete(limit = c("1/5", "1/2", "1", "2", "5"))
 ggheatmap_ten100
 
 upper_tri_ten300 <- get_upper_tri(apply(ten300, c(1,2), mean))
@@ -172,8 +173,8 @@ ggheatmap_ten300 <- ggplot(melted_ten300, aes(X2, X1, fill = value)) +
     title.position = "top",
     title.hjust = 0.5
   )) +
-  scale_x_discrete(limit = c("1/6", "1/3", "1", "3", "6"))+ 
-  scale_y_discrete(limit = c("1/6", "1/3", "1", "3", "6"))
+  scale_x_discrete(limit = c("1/5", "1/2", "1", "2", "5"))+ 
+  scale_y_discrete(limit = c("1/5", "1/2", "1", "2", "5"))
 ggheatmap_ten300
 
 upper_tri_ten1000 <- get_upper_tri(apply(ten1000, c(1,2), mean))
@@ -192,8 +193,8 @@ ggheatmap_ten1000 <- ggplot(melted_ten1000, aes(X2, X1, fill = value)) +
     plot.title = element_text(hjust = 0.5, size=24),
     plot.subtitle = element_text(hjust = 0.5, size=11)
   ) +
-  scale_x_discrete(limit = c("1/6", "1/3", "1", "3", "6"))+ 
-  scale_y_discrete(limit = c("1/6", "1/3", "1", "3", "6"))
+  scale_x_discrete(limit = c("1/5", "1/2", "1", "2", "5"))+ 
+  scale_y_discrete(limit = c("1/5", "1/2", "1", "2", "5"))
 ggheatmap_ten1000
 
 pdf(file = "L1plot2.pdf", width = 9, height = 3)
@@ -203,8 +204,8 @@ dev.off()
 
 #### densities
 
-cnam <- c("6", "3", "1", "033", "016")
-limits <- c(5/6, 5/3, 5, 15, 30, 5/6, 5/3, 5, 15, 30, 5/6, 5/3, 5, 15, 30)
+cnam <- c("5", "2", "1", "05", "02")
+limits <- c(1, 2.4, 5, 10.5, 25, 1, 2.4, 5, 10.5, 25, 1, 2.4, 5, 10.5, 25)
 resul <- matrix(0, ncol = 5, nrow = 4)
 res_l <- list()
 gre <- list()
@@ -214,25 +215,26 @@ truegrid <- expand.grid(seq(-4, 4, length.out = 60), seq(-4, 4, length.out = 60)
 trued <- cbind(truegrid, apply(truegrid, 1, dmvnorm))
 names(trued) <- c("V1", "V2", "V3") 
 truedl <- list()
-for(j in 1:15){
-  truedl[[j]] <- trued[abs(trued[,1]) < limits[j] & abs(trued[,2]) < limits[j],]
+mini <- 0
+maxi <- 15
+for(j in (mini + 1):maxi){
+  truedl[[j - mini]] <- trued[abs(trued[,1]) < limits[j - mini] & abs(trued[,2]) < limits[j - mini],]
 }
 
 red <- '#FF0000FF'
-grey <- '#868686FF'
-blue <- '#3333B2' 
-for(i in 1:15){
+grey <- '#303030'
+blue <- '#3333B2'
+
+for(i in (mini + 1):maxi){
   tdata2 <- tdata <- as.data.frame(using_list[[i]]$data)
   tcont <- as.data.frame(cbind(using_list[[i]]$grid, result[[i]][[1]]))
   
-  gre[[i]] <- ggscatter(data = tdata, x = "V1", y = "V2", color = grey, size = 3, alpha = 0.5) +
+  gre[[i-mini]] <- ggscatter(data = tdata, x = "V1", y = "V2", color = grey, size = 3, alpha = 0.5) +
     stat_contour(geom="polygon", data = trued, mapping = aes(x = V1, y = V2, z = V3), alpha = 0.05, fill = "blue") +
-    stat_contour(data = tcont, mapping = aes(x = V1, y = V2, z = V3), col = red) +
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-          panel.background = element_blank(), axis.line = element_line(colour = "black"),
-          axis.title.x=element_blank(), axis.title.y=element_blank()) + border() + 
-    coord_cartesian(xlim = c( -limits[i],limits[i]), ylim = c(-limits[i],limits[i]))
+    stat_contour(data = tcont, mapping = aes(x = V1, y = V2, z = V3), col = red, bins = 10) + theme_bw() +
+    theme(axis.title.x=element_blank(), axis.title.y=element_blank()) + border() + 
+    coord_cartesian(xlim = c( -limits[i-mini],limits[i-mini]), ylim = c(-limits[i-mini],limits[i-mini])) 
 }
-pdf("DensShot.pdf", width = 18, height = 10)
+pdf("DensShot_grid.pdf", width = 18, height = 10)
 ggarrange(plotlist = gre, ncol = 5, nrow = 3)
 dev.off()
