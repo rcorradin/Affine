@@ -228,20 +228,3 @@ ggheatmap <- ggplot(melted_cormat, aes(X2, X1, fill = value)) +
 pdf("heat-m.pdf", width = 8, height = 8)
 ggheatmap
 dev.off()
-
-#----------------#
-#    VS Ibata    #
-#----------------#
-
-plot(data[,3:4], pch = 20)
-identify(data[,3], data[,4], labels=1:nrow(data))
-
-IBAblue <- c(69, 72, 113, 117, 123, 126, 130, 136, 137)
-IBAgreen <- c(101, 133, 134)
-IBAblack <- c(13,  43,  75,  82,  96, 111, 122, 129, 135)
-IBA <- rep(1, nrow(data))
-IBA[IBAgreen] <- 2
-IBA[IBAblack] <- 2
-IBA[IBAblue] <- 3
-cbind(IBA, data.VI$cl[1,])
-confusion.matrix(as.integer(IBA), as.integer(data.VI$cl[1,]))
