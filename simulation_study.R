@@ -1,7 +1,6 @@
-#########################
+###############
 # SIMU 100 REP
-# It takes a lot of time
-#########################
+###############
 
 library(mvtnorm)
 library(doParallel)
