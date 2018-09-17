@@ -4,7 +4,7 @@
 
 library(mvtnorm)
 library(doParallel)
-library(BNPmix)
+library(AFFINEpack)
 library(mcclust.ext)
 library(reshape)
 library(viridis)
