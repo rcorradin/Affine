@@ -1,4 +1,4 @@
-library(BNPmix)
+library(AFFINEpack)
 library(reshape)
 library(viridis)
 library(ggplot2)
